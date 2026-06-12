@@ -80,7 +80,7 @@ def find_executables(metadata):
                 candidates.append(resolved)
         else:
             for match in glob.glob(os.path.expanduser(entry)):
-                if os.path.isfile(match) and os.access(match, os.X_OK):
+                if os.path.exists(match):
                     candidates.append(match)
         for path in candidates:
             real = os.path.realpath(path)
