@@ -13,50 +13,85 @@ import shutil
 AGENT_MAP = {
     "dotagents": {
         "name": "Standard Agent Config (.agents)",
+        "executables": [],
         "local": [".agents", "AGENTS.md"],
         "global": ["~/.agents"],
     },
     "claude": {
         "name": "Claude Code",
+        "executables": ["claude", "~/.local/bin/claude", "~/.nvm/versions/node/*/bin/claude"],
         "local": ["CLAUDE.md", ".claude", ".claude.json"],
-        "global": ["~/.claude"],
+        "global": ["~/.claude", "~/.claude.json"],
     },
     "copilot": {
         "name": "GitHub Copilot",
-        "local": [".github/copilot-instructions.md", "copilot.json", ".github/instructions", ".github/copilot"],
+        "executables": ["gh", "~/.local/bin/gh"],
+        "local": [".github/copilot-instructions.md", "copilot.json", ".github/instructions"],
         "global": ["~/.copilot"],
     },
     "gemini": {
         "name": "Google Gemini",
-        "local": ["GEMINI.md", ".gemini", ".gemini.json"],
+        "executables": ["gemini", "~/.local/bin/gemini"],
+        "local": ["GEMINI.md", ".gemini"],
         "global": ["~/.gemini"],
     },
     "cursor": {
         "name": "Cursor",
+        "executables": ["cursor", "~/.local/bin/cursor", "~/.cursor-server"],
         "local": [".cursorrules", ".cursorignore", ".cursor"],
         "global": ["~/.cursor"],
     },
     "windsurf": {
         "name": "Windsurf",
+        "executables": ["windsurf", "~/.local/bin/windsurf"],
         "local": [".windsurfrules", ".windsurf"],
-        "global": ["~/.windsurf"],
+        "global": [],
     },
     "opencode": {
         "name": "OpenCode",
+        "executables": ["opencode", "~/.local/bin/opencode"],
         "local": ["opencode.json", "opencode.jsonc", ".opencode"],
-        "global": ["~/.config/opencode", "~/.local/share/opencode"],
+        "global": ["~/.config/opencode"],
+    },
+    "antigravity": {
+        "name": "Antigravity CLI",
+        "executables": ["agy", "~/.local/bin/agy"],
+        "local": [],
+        "global": [],
+    },
+    "antigravity-ide": {
+        "name": "Antigravity IDE",
+        "executables": ["~/.antigravity-ide-server", "~/.antigravity-server"],
+        "local": [".antigravity"],
+        "global": ["~/.gemini/antigravity-cli", "~/.config/antigravity"],
     },
 }
 
 
-def find_files(search_global=False, base_path=None):
-    """Scans the directory and optionally global paths for agent files.
+def find_executables(metadata):
+    """Returns a list of detected executable paths for an agent."""
+    found = []
+    seen = set()
+    for entry in metadata.get("executables", []):
+        candidates = []
+        if not entry.startswith("~") and "/" not in entry and "\\" not in entry:
+            resolved = shutil.which(entry)
+            if resolved:
+                candidates.append(resolved)
+        else:
+            for match in glob.glob(os.path.expanduser(entry)):
+                if os.path.isfile(match) and os.access(match, os.X_OK):
+                    candidates.append(match)
+        for path in candidates:
+            real = os.path.realpath(path)
+            if real not in seen:
+                seen.add(real)
+                found.append(path)
+    return found
 
-    Args:
-        search_global: Whether to search global paths
-        base_path: Optional base directory to search from. If provided, searches for local files
-                   relative to this path and global files in ~/
-    """
+
+def find_files(search_global=False, base_path=None):
+    """Scans the directory and optionally global paths for agent files."""
     found_data = {}
     search_root = os.path.abspath(base_path) if base_path else os.getcwd()
 
@@ -66,6 +101,10 @@ def find_files(search_global=False, base_path=None):
     for agent, metadata in AGENT_MAP.items():
         local_matches = []
         global_matches = []
+        executable_matches = []
+
+        # Detect installed executables
+        executable_matches = find_executables(metadata)
 
         # Scan Local Paths
         for pattern in metadata["local"]:
@@ -82,8 +121,13 @@ def find_files(search_global=False, base_path=None):
                     if os.path.exists(match):
                         global_matches.append(match)
 
-        if local_matches or global_matches:
-            found_data[agent] = {"local_files": local_matches, "global_files": global_matches, "metadata": metadata}
+        if executable_matches or local_matches or global_matches:
+            found_data[agent] = {
+                "executables": executable_matches,
+                "local_files": local_matches,
+                "global_files": global_matches,
+                "metadata": metadata,
+            }
 
     return found_data
 
@@ -126,11 +170,13 @@ def main():
 
     print("🔍 Found agent files:")
     for agent, data in agents_present.items():
-        print(f"  [{agent}]")
-        for f in data["local_files"]:
-            print(f"    - {f}")
+        print(f"  [{agent}] {data['metadata']['name']}")
+        for f in data["executables"]:
+            print(f"    🤖 {f}")
         for f in data["global_files"]:
-            print(f"    - {f}")
+            print(f"    🌐 {f}")
+        for f in data["local_files"]:
+            print(f"    📄 {f}")
 
     # Step 3: Determine deletions based on user inputs
     # Use a set to avoid duplicates when multiple purge flags overlap
@@ -165,7 +211,7 @@ def main():
             delete_path(f)
         print("\nCleanup complete.")
     else:
-        if args.purge or args.purge_local or args.purge_global or any(getattr(args, f"purge_{a}") for a in AGENT_MAP):
+        if args.purge or args.purge_local or args.purge_global or any(getattr(args, f"purge_{a.replace('-', '_')}") for a in AGENT_MAP):
             print("\nℹ️  No files were deleted (your --keep flags protected them).")
         else:
             print("\nℹ️  Run with --purge, --purge-local, --purge-global, or --purge-<agent> to remove these files.")
