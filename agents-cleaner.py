@@ -65,7 +65,7 @@ AGENT_MAP = {
         "local": ["opencode.json", "opencode.jsonc", ".opencode"],
         "global": ["~/.config/opencode"],
     },
-    "antigravity": {
+    "antigravity-cli": {
         "name": "Antigravity CLI",
         "executables": ["agy", "~/.local/bin/agy"],
         "local": [],
