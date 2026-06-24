@@ -43,9 +43,9 @@ AGENT_MAP = {
     },
     "gemini": {
         "name": "Google Gemini",
-        "executables": ["gemini", "~/.local/bin/gemini"],
-        "local": ["GEMINI.md", ".gemini"],
-        "global": ["~/.gemini"],
+        "executables": ["gemini", "~/.local/bin/gemini", "~/.local/share/pnpm/nodejs/*/bin/gemini"],
+        "local": ["GEMINI.md", ".gemini/settings.json"],
+        "global": [".gemini/settings.json", "/etc/gemini-cli/system-defaults.json"],
     },
     "cursor": {
         "name": "Cursor",
@@ -69,13 +69,13 @@ AGENT_MAP = {
         "name": "Antigravity CLI",
         "executables": ["agy", "~/.local/bin/agy"],
         "local": [],
-        "global": [],
+        "global": ["~/.gemini/antigravity-cli", "~/.gemini/antigravity-cli/settings.json"],
     },
     "antigravity-ide": {
         "name": "Antigravity IDE",
         "executables": ["~/.antigravity-ide-server", "~/.antigravity-server"],
         "local": [".antigravity"],
-        "global": ["~/.gemini/antigravity-cli", "~/.config/antigravity"],
+        "global": ["~/.gemini/antigravity-ide", "~/.config/antigravity"],
     },
 }
 
