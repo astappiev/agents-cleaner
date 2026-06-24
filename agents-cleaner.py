@@ -19,9 +19,21 @@ AGENT_MAP = {
     },
     "claude": {
         "name": "Claude Code",
-        "executables": ["claude", "~/.local/bin/claude", "~/.nvm/versions/node/*/bin/claude"],
+        "executables": ["claude", "~/.local/bin/claude", "~/.nvm/versions/node/*/bin/claude", " ~/.local/share/fnm/node-versions/*/installation/bin/claude"],
         "local": ["CLAUDE.md", ".claude", ".claude.json"],
         "global": ["~/.claude", "~/.claude.json"],
+    },
+    "codex": {
+        "name": "OpenAI Codex",
+        "executables": ["codex", "~/.local/bin/codex", "~/.nvm/versions/node/*/bin/codex", "~/.local/share/fnm/node-versions/*/installation/bin/codex"],
+        "local": ["CODEX.md", ".codex", ".codex/config.toml"],
+        "global": ["~/.codex", "~/.codex/config.toml"],
+    },
+    "pi": {
+        "name": "Pi",
+        "executables": ["pi", "~/.local/bin/pi", "~/.nvm/versions/node/*/bin/pi", "~/.local/share/fnm/node-versions/*/installation/bin/pi"],
+        "local": [".pi", ".pi/settings.json"],
+        "global": ["~/.pi", "~/.pi/agent/settings.json"],
     },
     "copilot": {
         "name": "GitHub Copilot",
